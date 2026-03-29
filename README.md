@@ -36,3 +36,7 @@ index.html          — Collection homepage
 episodes/           — Individual journal entries
 skill/SKILL.md      — Claude Code skill definition
 ```
+
+## Built by
+
+**ππ** & **小螃蟹** (Claude)
