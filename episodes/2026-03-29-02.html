@@ -587,26 +587,29 @@
     return el;
   }
 
-  // Parse HTML text into tokens: tags are single tokens, text chars are individual tokens
-  function tokenize(html) {
-    const tokens = [];
-    let i = 0;
-    while (i < html.length) {
-      if (html[i] === '<') {
-        const end = html.indexOf('>', i);
-        if (end !== -1) {
-          tokens.push(html.slice(i, end + 1));
-          i = end + 1;
-        } else {
-          tokens.push(html[i]);
-          i++;
+  // Split HTML into clauses by Chinese/English punctuation, preserving HTML tags
+  function splitIntoClauses(html) {
+    const clauses = [];
+    let current = '';
+    let inTag = false;
+
+    for (let i = 0; i < html.length; i++) {
+      const ch = html[i];
+      if (ch === '<') inTag = true;
+      if (ch === '>') { inTag = false; current += ch; continue; }
+      current += ch;
+      // Split on punctuation, but only outside HTML tags
+      if (!inTag && /[。，、！？；：—]/.test(ch)) {
+        // Include trailing spaces
+        while (i + 1 < html.length && html[i + 1] === ' ') {
+          current += html[++i];
         }
-      } else {
-        tokens.push(html[i]);
-        i++;
+        clauses.push(current);
+        current = '';
       }
     }
-    return tokens;
+    if (current.trim()) clauses.push(current);
+    return clauses;
   }
 
   function sleep(ms) {
@@ -622,21 +625,18 @@
 
   let isPlaying = false;
 
-  async function typeText(textEl, html, speed) {
-    const tokens = tokenize(html);
+  async function revealText(textEl, html) {
+    const clauses = splitIntoClauses(html);
     let rendered = '';
-    let scrollCounter = 0;
-    for (const token of tokens) {
-      rendered += token;
+    for (let i = 0; i < clauses.length; i++) {
+      rendered += clauses[i];
       textEl.innerHTML = rendered;
-      // Only sleep on visible characters, not HTML tags
-      if (!token.startsWith('<')) {
-        await sleep(speed);
-        scrollCounter++;
-        if (scrollCounter % 8 === 0) scrollToBottom();
-      }
+      scrollToBottom();
+      // Reading time proportional to clause length, min 400ms max 1800ms
+      const plainLen = clauses[i].replace(/<[^>]*>/g, '').length;
+      const pause = Math.min(400 + plainLen * 50, 1800);
+      await sleep(pause);
     }
-    scrollToBottom();
   }
 
   async function playConversation() {
@@ -675,10 +675,9 @@
       scrollToBottom();
 
       const textEl = el.querySelector('.text');
-      // Speed: ~40ms per char for Chinese, gives a natural reading pace
-      await typeText(textEl, turn.text, 40);
+      await revealText(textEl, turn.text);
 
-      // Brief pause after each turn before next one
+      // Pause after each turn
       const isLastInGroup = (i + 1 < CONVERSATION.length && CONVERSATION[i + 1].type === 'breath')
         || i === CONVERSATION.length - 1;
       await sleep(isLastInGroup ? 800 : 1200);
