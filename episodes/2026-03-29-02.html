@@ -636,7 +636,7 @@
         await sleep(100);
         el.classList.add('visible');
         scrollToBottom();
-        await sleep(700);
+        await sleep(1200);
         continue;
       }
 
@@ -645,7 +645,7 @@
       scrollToBottom();
 
       const textLen = turn.text.replace(/<[^>]*>/g, '').length;
-      const typingDuration = Math.min(800 + textLen * 18, 2200);
+      const typingDuration = Math.min(800 + textLen * 25, 4500);
       await sleep(typingDuration);
 
       dialogue.removeChild(typingEl);
@@ -656,9 +656,11 @@
       turnEl.classList.add('visible');
       scrollToBottom();
 
+      // Reading pause — longer text gets more time to read
+      const readingPause = Math.min(1200 + textLen * 22, 6000);
       const isLastInGroup = (i + 1 < CONVERSATION.length && CONVERSATION[i + 1].type === 'breath')
         || i === CONVERSATION.length - 1;
-      await sleep(isLastInGroup ? 600 : 900);
+      await sleep(isLastInGroup ? readingPause : readingPause + 300);
     }
 
     await sleep(800);
