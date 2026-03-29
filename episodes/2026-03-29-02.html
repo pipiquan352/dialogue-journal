@@ -641,9 +641,11 @@
       turnEl.classList.add('visible');
       scrollToBottom();
 
-      // Reading pause — ~8 chars/sec, comfortable scanning speed
+      // Reading pause — scales with text length, short lines feel snappy, long ones breathe
       const textLen = turn.text.replace(/<[^>]*>/g, '').length;
-      const readingPause = Math.min(800 + textLen * 120, 7000);
+      const readingPause = textLen < 20
+        ? 600 + textLen * 80          // short lines: 0.6–2.2s
+        : Math.min(1000 + textLen * 100, 7000);  // longer: 1–7s
       await sleep(readingPause);
     }
 
