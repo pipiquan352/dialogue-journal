@@ -587,20 +587,26 @@
     return el;
   }
 
-  function createTypingIndicator(speaker) {
-    const el = document.createElement('div');
-    el.className = `turn turn-${speaker}`;
-    el.innerHTML = `
-      <div class="speaker speaker-${speaker}">${speaker === 'human' ? 'ππ' : '小螃蟹'}</div>
-      <div class="typing">
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-        <span class="typing-dot"></span>
-      </div>
-    `;
-    el.style.opacity = '1';
-    el.style.transform = 'none';
-    return el;
+  // Parse HTML text into tokens: tags are single tokens, text chars are individual tokens
+  function tokenize(html) {
+    const tokens = [];
+    let i = 0;
+    while (i < html.length) {
+      if (html[i] === '<') {
+        const end = html.indexOf('>', i);
+        if (end !== -1) {
+          tokens.push(html.slice(i, end + 1));
+          i = end + 1;
+        } else {
+          tokens.push(html[i]);
+          i++;
+        }
+      } else {
+        tokens.push(html[i]);
+        i++;
+      }
+    }
+    return tokens;
   }
 
   function sleep(ms) {
@@ -616,6 +622,23 @@
 
   let isPlaying = false;
 
+  async function typeText(textEl, html, speed) {
+    const tokens = tokenize(html);
+    let rendered = '';
+    let scrollCounter = 0;
+    for (const token of tokens) {
+      rendered += token;
+      textEl.innerHTML = rendered;
+      // Only sleep on visible characters, not HTML tags
+      if (!token.startsWith('<')) {
+        await sleep(speed);
+        scrollCounter++;
+        if (scrollCounter % 8 === 0) scrollToBottom();
+      }
+    }
+    scrollToBottom();
+  }
+
   async function playConversation() {
     if (isPlaying) return;
     isPlaying = true;
@@ -630,37 +653,35 @@
       const turn = CONVERSATION[i];
 
       if (turn.type === 'breath') {
-        await sleep(400);
+        await sleep(600);
         const el = createTurnElement(turn);
         dialogue.appendChild(el);
         await sleep(100);
         el.classList.add('visible');
         scrollToBottom();
-        await sleep(1200);
+        await sleep(1000);
         continue;
       }
 
-      const typingEl = createTypingIndicator(turn.speaker);
-      dialogue.appendChild(typingEl);
+      // Create turn element with empty text
+      const el = document.createElement('div');
+      el.className = `turn turn-${turn.speaker}`;
+      el.innerHTML = `
+        <div class="speaker speaker-${turn.speaker}">${turn.name}</div>
+        <div class="text"></div>
+      `;
+      dialogue.appendChild(el);
+      el.classList.add('visible');
       scrollToBottom();
 
-      const textLen = turn.text.replace(/<[^>]*>/g, '').length;
-      const typingDuration = Math.min(800 + textLen * 25, 4500);
-      await sleep(typingDuration);
+      const textEl = el.querySelector('.text');
+      // Speed: ~40ms per char for Chinese, gives a natural reading pace
+      await typeText(textEl, turn.text, 40);
 
-      dialogue.removeChild(typingEl);
-      const turnEl = createTurnElement(turn);
-      dialogue.appendChild(turnEl);
-
-      await sleep(60);
-      turnEl.classList.add('visible');
-      scrollToBottom();
-
-      // Reading pause — longer text gets more time to read
-      const readingPause = Math.min(1200 + textLen * 22, 6000);
+      // Brief pause after each turn before next one
       const isLastInGroup = (i + 1 < CONVERSATION.length && CONVERSATION[i + 1].type === 'breath')
         || i === CONVERSATION.length - 1;
-      await sleep(isLastInGroup ? readingPause : readingPause + 300);
+      await sleep(isLastInGroup ? 800 : 1200);
     }
 
     await sleep(800);
