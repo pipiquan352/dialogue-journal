@@ -575,29 +575,20 @@
     return el;
   }
 
-  // Split HTML into clauses by Chinese/English punctuation, preserving HTML tags
-  function splitIntoClauses(html) {
-    const clauses = [];
-    let current = '';
-    let inTag = false;
-
-    for (let i = 0; i < html.length; i++) {
-      const ch = html[i];
-      if (ch === '<') inTag = true;
-      if (ch === '>') { inTag = false; current += ch; continue; }
-      current += ch;
-      // Split on punctuation, but only outside HTML tags
-      if (!inTag && /[。，、！？；：—]/.test(ch)) {
-        // Include trailing spaces
-        while (i + 1 < html.length && html[i + 1] === ' ') {
-          current += html[++i];
-        }
-        clauses.push(current);
-        current = '';
-      }
-    }
-    if (current.trim()) clauses.push(current);
-    return clauses;
+  function createTypingIndicator(speaker) {
+    const el = document.createElement('div');
+    el.className = `turn turn-${speaker}`;
+    el.innerHTML = `
+      <div class="speaker speaker-${speaker}">${speaker === 'human' ? 'ππ' : '小螃蟹'}</div>
+      <div class="typing">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+    `;
+    el.style.opacity = '1';
+    el.style.transform = 'none';
+    return el;
   }
 
   function sleep(ms) {
@@ -612,20 +603,6 @@
   }
 
   let isPlaying = false;
-
-  async function revealText(textEl, html) {
-    const clauses = splitIntoClauses(html);
-    let rendered = '';
-    for (let i = 0; i < clauses.length; i++) {
-      rendered += clauses[i];
-      textEl.innerHTML = rendered;
-      scrollToBottom();
-      // Reading time proportional to clause length, min 400ms max 1800ms
-      const plainLen = clauses[i].replace(/<[^>]*>/g, '').length;
-      const pause = Math.min(400 + plainLen * 50, 1800);
-      await sleep(pause);
-    }
-  }
 
   async function playConversation() {
     if (isPlaying) return;
@@ -651,24 +628,24 @@
         continue;
       }
 
-      // Create turn element with empty text
-      const el = document.createElement('div');
-      el.className = `turn turn-${turn.speaker}`;
-      el.innerHTML = `
-        <div class="speaker speaker-${turn.speaker}">${turn.name}</div>
-        <div class="text"></div>
-      `;
-      dialogue.appendChild(el);
-      el.classList.add('visible');
+      // Brief typing indicator
+      const typingEl = createTypingIndicator(turn.speaker);
+      dialogue.appendChild(typingEl);
+      scrollToBottom();
+      await sleep(800);
+      dialogue.removeChild(typingEl);
+
+      // Fade in the full turn
+      const turnEl = createTurnElement(turn);
+      dialogue.appendChild(turnEl);
+      await sleep(60);
+      turnEl.classList.add('visible');
       scrollToBottom();
 
-      const textEl = el.querySelector('.text');
-      await revealText(textEl, turn.text);
-
-      // Pause after each turn
-      const isLastInGroup = (i + 1 < CONVERSATION.length && CONVERSATION[i + 1].type === 'breath')
-        || i === CONVERSATION.length - 1;
-      await sleep(isLastInGroup ? 800 : 1200);
+      // Reading pause — Chinese ~5 chars/sec, plus base time
+      const textLen = turn.text.replace(/<[^>]*>/g, '').length;
+      const readingPause = Math.min(1500 + textLen * 200, 12000);
+      await sleep(readingPause);
     }
 
     await sleep(800);
