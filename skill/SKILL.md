@@ -50,7 +50,7 @@ Once the user approves the content:
 3. **Pick 2 preview lines** — one from ππ, one from 小螃蟹, for the index page
 4. **Date** — use today's date in format `YYYY-MM-DD`
 
-Create the episode HTML by copying the template structure from the most recent episode in `C:\Users\menquan\conversation-journal\episodes\`. The key parts to change:
+Create the episode HTML by copying the template structure from the most recent episode in `~/conversation-journal\episodes\`. The key parts to change:
 
 - `<title>` tag
 - `.header-date` content
@@ -59,11 +59,11 @@ Create the episode HTML by copying the template structure from the most recent e
 - `.header-intro` (1-2 sentence intro for context)
 - `CONVERSATION` array in the `<script>` (the distilled dialogue)
 
-Save to: `C:\Users\menquan\conversation-journal\episodes\{YYYY-MM-DD}.html`
+Save to: `~/conversation-journal\episodes\{YYYY-MM-DD}.html`
 
 ### Step 4: Update Index
 
-In `C:\Users\menquan\conversation-journal\index.html`, add a new entry to the **beginning** of the `EPISODES` array (newest first):
+In `~/conversation-journal\index.html`, add a new entry to the **beginning** of the `EPISODES` array (newest first):
 
 ```javascript
 {
