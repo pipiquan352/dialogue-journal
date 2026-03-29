@@ -28,10 +28,11 @@ Review the current conversation. Look for:
 
 ### Step 2: Distill the Dialogue
 
-Rewrite the highlights as a **refined conversation** between ππ and 小螃蟹:
+Rewrite the highlights as a **refined conversation** between the user and the AI:
 
+- **Ask the user for speaker names** on first use (e.g. their nickname and a name for Claude). Remember these for future episodes.
 - **Keep the dialogue format** — this is the core identity
-- **Preserve voice and rhythm** — ππ's directness, 小螃蟹's reflective responses
+- **Preserve voice and rhythm** — the user's directness, Claude's reflective responses
 - **Remove noise** — condense, rephrase, but keep the natural feel
 - **Add `{ type: 'breath' }` separators** between thematic shifts
 - **Mark key insights** with `<span class="insight">...</span>`
@@ -47,7 +48,7 @@ Once the user approves the content:
 
 1. **Choose a title** — 中文 main title + English subtitle (both short)
 2. **Choose tags** — 1-3 short tags for the episode
-3. **Pick 2 preview lines** — one from ππ, one from 小螃蟹, for the index page
+3. **Pick 2 preview lines** — one from each speaker, for the index page
 4. **Date** — use today's date in format `YYYY-MM-DD`
 
 Create the episode HTML by copying the template structure from the most recent episode in `~/conversation-journal\episodes\`. The key parts to change:
@@ -72,8 +73,8 @@ In `~/conversation-journal\index.html`, add a new entry to the **beginning** of 
   subtitle: 'English subtitle',
   file: 'episodes/YYYY-MM-DD.html',
   preview: [
-    { who: 'ππ', text: '...' },
-    { who: '小螃蟹', text: '...' },
+    { who: '{user_name}', text: '...' },
+    { who: '{ai_name}', text: '...' },
   ],
   tags: ['tag1', 'tag2'],
 },
@@ -88,11 +89,11 @@ git commit -m "Add episode: {title}"
 git push
 ```
 
-Provide the live URL: `https://pipiquan352.github.io/dialogue-journal/episodes/{date}.html`
+Provide the live URL after deployment.
 
 ## Important Notes
 
 - **Always show the distilled dialogue to the user first** — they may want to adjust tone, remove something, or add context
-- **Speaker names are always ππ and 小螃蟹** — never use real names
+- **Use the speaker names the user chose** — never use real names unless they want to
 - **The intro line sets context for strangers** — write it as if the reader knows nothing
 - **Keep the warm earth-tone design** — don't modify CSS unless asked
