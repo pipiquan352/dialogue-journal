@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Dialogue Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --paper: #F7F2EB;
+      --ink: #2E2420;
+      --ink-soft: #5C4D44;
+      --ink-muted: #A0907E;
+      --terracotta: #BF6B3F;
+      --olive: #6A7E52;
+      --sand-warm: #EDE4D6;
+      --sand-deep: #D9CCBA;
+      --accent-line: #CFC0AD;
+      --highlight-bg: #F0E6D8;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Paper grain */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+      background-size: 256px 256px;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .page {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 0 28px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ========== Hero Header ========== */
+    .hero {
+      padding-top: clamp(60px, 16vh, 120px);
+      padding-bottom: 56px;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+    }
+
+    .hero-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 9vw, 3.6rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 16px;
+    }
+
+    .hero-desc {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.05rem, 3.2vw, 1.2rem);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--ink-muted);
+      line-height: 1.6;
+      max-width: 380px;
+    }
+
+    .hero-rule {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 40px;
+    }
+
+    .hero-rule-line {
+      height: 1.5px;
+      background: var(--terracotta);
+      width: 28px;
+      transform-origin: left;
+      transform: scaleX(0);
+      animation: lineReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.9s forwards;
+    }
+
+    .hero-rule-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--terracotta);
+      opacity: 0;
+      animation: dotPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) 1.2s forwards;
+    }
+
+    /* ========== Episodes List ========== */
+    .episodes {
+      flex: 1;
+      padding-bottom: 80px;
+    }
+
+    .episode {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      padding: 28px 0;
+      border-bottom: 1px solid var(--accent-line);
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transition: padding-left 0.3s ease;
+    }
+
+    .episode:first-child {
+      border-top: 1px solid var(--accent-line);
+    }
+
+    .episode:hover {
+      padding-left: 12px;
+    }
+
+    .episode-date {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--terracotta);
+      margin-bottom: 8px;
+    }
+
+    .episode-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.4rem, 4.5vw, 1.7rem);
+      font-weight: 600;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .episode-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.95rem;
+      font-weight: 300;
+      font-style: italic;
+      color: var(--ink-muted);
+      line-height: 1.4;
+    }
+
+    .episode-preview {
+      margin-top: 14px;
+      padding-left: 14px;
+      border-left: 2px solid var(--sand-deep);
+    }
+
+    .episode-preview-line {
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: var(--ink-soft);
+    }
+
+    .episode-preview-line .who {
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: none;
+      margin-right: 6px;
+    }
+
+    .who-human { color: var(--terracotta); }
+    .who-ai { color: var(--olive); }
+
+    .episode-tag {
+      display: inline-block;
+      margin-top: 12px;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: var(--ink-muted);
+      background: var(--highlight-bg);
+      padding: 3px 10px;
+      border-radius: 3px;
+    }
+
+    /* ========== Empty state ========== */
+    .coming-soon {
+      padding: 40px 0;
+      opacity: 0;
+      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.6s forwards;
+    }
+
+    .coming-soon-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem;
+      font-style: italic;
+      color: var(--sand-deep);
+    }
+
+    /* ========== Footer ========== */
+    .footer {
+      padding: 24px 0 40px;
+      border-top: 1px solid var(--accent-line);
+      opacity: 0;
+      animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.8s forwards;
+    }
+
+    .footer-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 0.85rem;
+      font-style: italic;
+      color: var(--ink-muted);
+    }
+
+    .footer-sub {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent-line);
+      margin-top: 6px;
+    }
+
+    /* ========== Animations ========== */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes lineReveal {
+      to { opacity: 1; transform: scaleX(1); }
+    }
+
+    @keyframes dotPop {
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 480px) {
+      .page { padding: 0 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+  <header class="hero">
+    <div class="hero-label">Dialogue Journal</div>
+    <h1 class="hero-title">对话即创作</h1>
+    <p class="hero-desc">Conversations between a human and her AI collaborator, distilled into moments worth keeping.</p>
+  </header>
+
+  <main class="episodes" id="episodes">
+    <!-- Episodes rendered by JS from data -->
+  </main>
+
+  <div class="coming-soon">
+    <p class="coming-soon-text">more conversations to come...</p>
+  </div>
+
+  <footer class="footer">
+    <p class="footer-text">conversations between human & machine</p>
+    <p class="footer-sub">ππ + Claude</p>
+  </footer>
+</div>
+
+<script>
+  // Episode registry — add new entries here
+  const EPISODES = [
+    {
+      date: 'March 29, 2026',
+      title: '对话即创作',
+      subtitle: 'Conversation is creation',
+      file: 'episodes/2026-03-29.html',
+      preview: [
+        { who: 'ππ', text: '其实我想表达的东西，已经在我们的对话里了。' },
+        { who: '小螃蟹', text: '所以对话本身就是内容，不需要再包装一层。' },
+      ],
+      tags: ['创作', '日记'],
+    },
+  ];
+
+  const container = document.getElementById('episodes');
+
+  EPISODES.forEach((ep, i) => {
+    const a = document.createElement('a');
+    a.className = 'episode';
+    a.href = ep.file;
+    a.style.animationDelay = `${1.2 + i * 0.12}s`;
+
+    const previewHTML = ep.preview.map(p => {
+      const cls = p.who === 'ππ' ? 'who-human' : 'who-ai';
+      return `<div class="episode-preview-line"><span class="who ${cls}">${p.who}</span>${p.text}</div>`;
+    }).join('');
+
+    const tagsHTML = ep.tags.map(t => `<span class="episode-tag">${t}</span>`).join(' ');
+
+    a.innerHTML = `
+      <div class="episode-date">${ep.date}</div>
+      <div class="episode-title">${ep.title}</div>
+      <div class="episode-subtitle">${ep.subtitle}</div>
+      <div class="episode-preview">${previewHTML}</div>
+      ${tagsHTML}
+    `;
+
+    container.appendChild(a);
+  });
+</script>
+
+</body>
+</html>
