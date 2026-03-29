@@ -1,0 +1,9 @@
+{
+  "name": "Dialogue Journal",
+  "short_name": "对话日记",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "background_color": "#F7F2EB",
+  "theme_color": "#F7F2EB",
+  "icons": []
+}
