@@ -627,11 +627,11 @@
         continue;
       }
 
-      // Brief typing indicator
+      // Brief typing indicator — shorter for opening turns
       const typingEl = createTypingIndicator(turn.speaker);
       dialogue.appendChild(typingEl);
       scrollToBottom();
-      await sleep(800);
+      await sleep(i < 2 ? 500 : 800);
       dialogue.removeChild(typingEl);
 
       // Fade in the full turn
@@ -641,11 +641,16 @@
       turnEl.classList.add('visible');
       scrollToBottom();
 
-      // Reading pause — scales with text length, short lines feel snappy, long ones breathe
+      // Reading pause — first 2 turns are faster to build momentum
       const textLen = turn.text.replace(/<[^>]*>/g, '').length;
-      const readingPause = textLen < 20
-        ? 600 + textLen * 80          // short lines: 0.6–2.2s
-        : Math.min(1000 + textLen * 100, 7000);  // longer: 1–7s
+      let readingPause;
+      if (i < 2) {
+        readingPause = Math.min(600 + textLen * 60, 3500);
+      } else if (textLen < 20) {
+        readingPause = 600 + textLen * 80;
+      } else {
+        readingPause = Math.min(1000 + textLen * 100, 7000);
+      }
       await sleep(readingPause);
     }
 
