@@ -641,9 +641,9 @@
       turnEl.classList.add('visible');
       scrollToBottom();
 
-      // Reading pause — Chinese ~5 chars/sec, plus base time
+      // Reading pause — ~8 chars/sec, comfortable scanning speed
       const textLen = turn.text.replace(/<[^>]*>/g, '').length;
-      const readingPause = Math.min(1500 + textLen * 200, 12000);
+      const readingPause = Math.min(800 + textLen * 120, 7000);
       await sleep(readingPause);
     }
 
